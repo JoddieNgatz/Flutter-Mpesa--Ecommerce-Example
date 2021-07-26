@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mpesa_flutter_plugin/mpesa_flutter_plugin.dart';
+import './keys.dart';
 
 void main() {
-  MpesaFlutterPlugin.setConsumerKey("Your Consumer Key from the safarocom portal, its random eg.'8joAntLHTIT28Pup....' ");
-  MpesaFlutterPlugin.setConsumerSecret("Your Consumer Secret from the safarocom portal, its random eg. 'kjiUWoPT4...' ");
+  MpesaFlutterPlugin.setConsumerKey(consumerKey);
+  MpesaFlutterPlugin.setConsumerSecret(consumerPass);
 
   runApp(MyApp());
 }
@@ -13,18 +14,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Mpesa Ecommerce App',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.blueGrey,
         // This makes the visual density adapt to the platform that you run
         // the app on. For desktop platforms, the controls will be smaller and
         // closer together (more dense) than on mobile platforms.
@@ -54,28 +46,46 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  String userPhone = "254710529574";
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  List<Map<String, dynamic>> itemsOnSale = [
+    {
+      "image": "image/phone.jpg",
+      "itemName": "Xiaomi Redmi note 10",
+      "price": 1.0
+    }
+  ];
 
-    void _lipanampesa() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  double amount;
+  Future<void> _lipaNaMpesa(String userPhone, double amount) async {
+    dynamic transactionInitialisation;
+    try {
+      transactionInitialisation =
+          await MpesaFlutterPlugin.initializeMpesaSTKPush(
+              businessShortCode: "174379",
+              transactionType: TransactionType.CustomerPayBillOnline,
+              amount: amount,
+              partyA: userPhone,
+              partyB: "174379",
+              callBackURL: Uri(
+                  scheme: "https",
+                  host: "my-app.herokuapp.com",
+                  path: "/callback"),
+              accountReference: "shoe",
+              phoneNumber: userPhone,
+              baseUri: Uri(scheme: "https", host: "sandbox.safaricom.co.ke"),
+              transactionDesc: "purchase",
+              passKey: mPasskey);
+
+      print("TRANSACTION RESULT: " + transactionInitialisation.toString());
+
+      /*Update your db with the init data received from initialization response,
+      * Remaining bit will be sent via callback url*/
+      return transactionInitialisation;
+    } catch (e) {
+      //For now, console might be useful
+      print("CAUGHT EXCEPTION: " + e.toString());
+    }
   }
 
   @override
@@ -92,47 +102,65 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
+      body: ListView.builder(
+        itemBuilder: (BuildContext context, int index) {
+          return Card(
+            elevation: 4.0,
+            child: Container(
+              decoration: ShapeDecoration(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  color: Colors.brown),
+              height: MediaQuery.of(context).size.height * 0.35,
+              //color: Colors.brown,
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0)),
+                    child: Image.asset(
+                      itemsOnSale[index]["image"],
+                      fit: BoxFit.cover,
+                    ),
+                    height: MediaQuery.of(context).size.height * 0.25,
+                    width: MediaQuery.of(context).size.width * 0.95,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.45,
+                        child: Text(
+                          itemsOnSale[index]["itemName"],
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 14.0, color: Colors.black),
+                        ),
+                      ),
+                      Text(
+                        "Ksh. " + itemsOnSale[index]["price"].toString(),
+                        style: TextStyle(
+                            fontSize: 18.0,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      RaisedButton(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0)),
+                          onPressed: () {
+                            amount=itemsOnSale[index]["price"];
+                            _lipaNaMpesa(userPhone, amount);
+                          },
+                          child: Text("Checkout"))
+                    ],
+                  )
+                ],
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-             FloatingActionButton(
-        onPressed: _lipanampesa,
-        tooltip: 'Lipa Na Mpesa',
-        child: Icon(Icons.add),
+          );
+        },
+        itemCount: itemsOnSale.length,
       ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
-       // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
