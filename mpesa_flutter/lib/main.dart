@@ -50,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<Map<String, dynamic>> itemsOnSale = [
     {
-      "image": "image/phone.jpg",
+      "image": 'image/phone.jpg',
       "itemName": "Xiaomi Redmi note 10",
       "price": 1.0
     }
@@ -66,13 +66,13 @@ class _MyHomePageState extends State<MyHomePage> {
               transactionType: TransactionType.CustomerPayBillOnline,
               amount: amount,
               partyA: userPhone,
-              partyB: "174379",
+              partyB: "600000",
+              phoneNumber: userPhone,
               callBackURL: Uri(
                   scheme: "https",
-                  host: "my-app.herokuapp.com",
-                  path: "/callback"),
+                  host: "mpesa-requestbin.herokuapp.com",
+                  path: "/<YOUR BIN FROM http://mpesa-requestbin.herokuapp.com/?ref=hackernoon.com >"),
               accountReference: "shoe",
-              phoneNumber: userPhone,
               baseUri: Uri(scheme: "https", host: "sandbox.safaricom.co.ke"),
               transactionDesc: "purchase",
               passKey: mPasskey);
@@ -90,17 +90,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+         title: Text(widget.title),
       ),
       body: ListView.builder(
         itemBuilder: (BuildContext context, int index) {
